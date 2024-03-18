@@ -1,10 +1,9 @@
 import React from "react";
 import { View, Text } from "react-native";
 
-const Tv = () => (
+const Search = () => (
   <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-    <Text>Tv</Text>
+    <Text>Search</Text>
   </View>
 );
-
-export default Tv;
+export default Search;
