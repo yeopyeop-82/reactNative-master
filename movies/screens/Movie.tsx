@@ -55,6 +55,36 @@ const Votes = styled.Text`
   font-size: 10px;
 `;
 
+const ListContainer = styled.View`
+  margin-bottom: 40px;
+`;
+
+const HMovie = styled.View`
+  flex-direction: row;
+  margin-bottom: 30px;
+  padding: 0px 30px;
+`;
+
+const HColumn = styled.View`
+  margin-left: 15px;
+  width: 80%;
+`;
+const OverView = styled.Text`
+  color: white;
+  opacity: 0.8;
+  width: 80%;
+`;
+
+const Release = styled.Text`
+  color: white;
+  font-size: 12px;
+  margin: 10px 0px;
+`;
+
+const ComingSoonTitle = styled(ListTitle)`
+  margin-bottom: 30px;
+`;
+
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
@@ -126,23 +156,47 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
           />
         ))}
       </Swiper>
-      <ListTitle>Trending Movies</ListTitle>
-      <TrendingScroll
-        contentContainerStyle={{ paddingLeft: 30 }}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-      >
-        {trending.map((movie) => (
-          <Movie key={movie.id}>
-            <Poster path={movie.poster_path} />
-            <Title>
-              {movie.original_title.slice(0, 13)}
-              {movie.original_title.length > 13 ? "..." : null}
-            </Title>
-            <Votes>⭐️ {movie.vote_average}/10</Votes>
-          </Movie>
+      <ListContainer>
+        <ListTitle>Trending Movies</ListTitle>
+        <TrendingScroll
+          contentContainerStyle={{ paddingLeft: 30 }}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          {trending.map((movie) => (
+            <Movie key={movie.id}>
+              <Poster path={movie.poster_path} />
+              <Title>
+                {movie.original_title.slice(0, 13)}
+                {movie.original_title.length > 13 ? "..." : null}
+              </Title>
+              <Votes>⭐️ {movie.vote_average}/10</Votes>
+            </Movie>
+          ))}
+        </TrendingScroll>
+      </ListContainer>
+      <ListContainer>
+        <ComingSoonTitle>Coming Soon</ComingSoonTitle>
+        {upComing.map((movie) => (
+          <HMovie key={movie.id}>
+            <Poster path={movie.poster_path}></Poster>
+            <HColumn>
+              <Title>
+                {movie.original_title.slice(0, 13)}
+                {movie.original_title.length > 13 ? "..." : null}
+              </Title>
+              <Release>
+                {new Date(movie.release_date).toLocaleDateString("ko")}
+              </Release>
+              <OverView>
+                {movie.overview !== "" && movie.overview.length > 100
+                  ? `${movie.overview.slice(0, 100)}...`
+                  : movie.overview}
+              </OverView>
+            </HColumn>
+          </HMovie>
         ))}
-      </TrendingScroll>
+      </ListContainer>
     </Container>
   );
 };
