@@ -5,20 +5,20 @@ import Swiper from "react-native-swiper";
 import {
   ActivityIndicator,
   Dimensions,
+  ScrollView,
+  Text,
   View,
   useColorScheme,
 } from "react-native";
 import { makeImgPath } from "../utils";
 import { BlurView } from "expo-blur";
+import Slide from "../components/Slide";
+import Poster from "../components/Poster";
 
 const API_KEY = "9709682abb450898fa987d9291a6c9c2";
 
 const Container = styled.ScrollView`
   background-color: ${(props) => props.theme.mainBgColor};
-`;
-
-const MovieView = styled.View`
-  flex: 1;
 `;
 
 const Loader = styled.View`
@@ -27,44 +27,32 @@ const Loader = styled.View`
   align-items: center;
 `;
 
-const BgImg = styled.Image`
-  width: 100%;
-  height: 100%;
-  position: absolute;
+const ListTitle = styled.Text`
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  margin-left: 30px;
 `;
 
-const Poster = styled.Image`
-  width: 100px;
-  height: 160px;
-  border-radius: 5px;
+const TrendingScroll = styled.ScrollView`
+  margin-top: 20px;
 `;
 
-const Wrapper = styled.View`
-  flex-direction: row;
-  height: 100%;
-  justify-content: center;
+const Movie = styled.View`
+  margin-right: 20px;
   align-items: center;
 `;
 
-const Column = styled.View`
-  width: 40%;
-  margin-left: 15px;
-`;
-
 const Title = styled.Text`
-  font-size: 16px;
-  font-weight: 600;
   color: white;
+  font-weight: 600;
+  margin-top: 7px;
+  margin-bottom: 5px;
 `;
 
-const OverView = styled.Text`
-  margin-top: 10px;
+const Votes = styled.Text`
   color: rgba(255, 255, 255, 0.8);
-`;
-
-const Votes = styled(OverView)`
-  margin-top: 5px;
-  font-size: 12px;
+  font-size: 10px;
 `;
 
 const { height: SCREEN_HEIGHT, width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -73,6 +61,24 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
   const isDark = useColorScheme() === "dark";
   const [loading, setLoading] = useState(true);
   const [nowPlaying, setNowPlaying] = useState([]);
+  const [upComing, setUpComing] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const getTrending = async () => {
+    const { results } = await (
+      await fetch(
+        `https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}&language=ko-KR&page=1&region=KR`
+      )
+    ).json();
+    setTrending(results);
+  };
+  const getUpComing = async () => {
+    const { results } = await (
+      await fetch(
+        `https://api.themoviedb.org/3/movie/upcoming?api_key=${API_KEY}&language=ko-KR&page=1&region=KR`
+      )
+    ).json();
+    setUpComing(results);
+  };
   const getNowPlaying = async () => {
     const { results } = await (
       await fetch(
@@ -80,11 +86,15 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
       )
     ).json();
     setNowPlaying(results);
+  };
+
+  const getData = async () => {
+    await Promise.all([getTrending(), getUpComing(), getNowPlaying()]);
     setLoading(false);
   };
 
   useEffect(() => {
-    getNowPlaying();
+    getData();
   }, []);
 
   return loading ? (
@@ -94,7 +104,11 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
   ) : (
     <Container>
       <Swiper
-        containerStyle={{ width: "100%", height: SCREEN_HEIGHT / 4 }}
+        containerStyle={{
+          width: "100%",
+          height: SCREEN_HEIGHT / 4,
+          marginBottom: 30,
+        }}
         loop
         horizontal
         autoplay={true}
@@ -102,24 +116,33 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = () => {
         showsPagination={false}
       >
         {nowPlaying.map((movie) => (
-          <MovieView key={movie.id}>
-            <BgImg source={{ uri: makeImgPath(movie.backdrop_path) }} />
-            <BlurView
-              tint={isDark ? "dark" : "light"}
-              style={{ width: "100%", height: "100%", position: "absolute" }}
-            >
-              <Wrapper>
-                <Poster source={{ uri: makeImgPath(movie.poster_path) }} />
-                <Column>
-                  <Title>{movie.original_title}</Title>
-                  <Votes>⭐️{movie.vote_average}/10</Votes>
-                  <OverView>{movie.overview.slice(0, 80)}...</OverView>
-                </Column>
-              </Wrapper>
-            </BlurView>
-          </MovieView>
+          <Slide
+            key={movie.id}
+            backdrop_path={movie.backdrop_path}
+            poster_path={movie.poster_path}
+            original_title={movie.original_title}
+            vote_average={movie.vote_average}
+            overview={movie.overview}
+          />
         ))}
       </Swiper>
+      <ListTitle>Trending Movies</ListTitle>
+      <TrendingScroll
+        contentContainerStyle={{ paddingLeft: 30 }}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
+        {trending.map((movie) => (
+          <Movie key={movie.id}>
+            <Poster path={movie.poster_path} />
+            <Title>
+              {movie.original_title.slice(0, 13)}
+              {movie.original_title.length > 13 ? "..." : null}
+            </Title>
+            <Votes>⭐️ {movie.vote_average}/10</Votes>
+          </Movie>
+        ))}
+      </TrendingScroll>
     </Container>
   );
 };
